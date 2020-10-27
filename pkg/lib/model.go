@@ -73,7 +73,7 @@ func (m *Model) Init() tea.Cmd {
 	m.views.params.Component = NoopUpdater{Content(m.params.Content())}
 	m.views.labels.Component = NoopUpdater{Content(garbage)}
 	m.views.logs.Component = NoopUpdater{Content(garbage)}
-	m.views.help = DefaultHelp
+	m.views.help = DefaultHelp()
 
 	m.client = &client.DefaultClient{
 		Address:  os.Getenv("LOKI_ADDR"),

@@ -55,42 +55,44 @@ func (h HelpPane) View() string {
 	).View()
 }
 
-var DefaultHelp = HelpPane{
-	Height: 0,
-	Width:  0,
-	intents: []Intent{
-		{
-			Primary: "q",
-			Aliases: []string{"C-c"},
-			Msg:     "quit",
+func DefaultHelp() HelpPane {
+	return HelpPane{
+		Height: 0,
+		Width:  0,
+		intents: []Intent{
+			{
+				Primary: "q",
+				Aliases: []string{"C-c"},
+				Msg:     "quit",
+			},
+			{
+				Primary: "n",
+				Msg:     "next pane",
+			},
+			{
+				Primary: "p",
+				Msg:     "previous pane",
+			},
+			{
+				Primary: "h",
+				Aliases: []string{"←"},
+				Msg:     "move left",
+			},
+			{
+				Primary: "j",
+				Aliases: []string{"↓"},
+				Msg:     "move down",
+			},
+			{
+				Primary: "k",
+				Aliases: []string{"↑"},
+				Msg:     "move up",
+			},
+			{
+				Primary: "l",
+				Aliases: []string{"→"},
+				Msg:     "move right",
+			},
 		},
-		{
-			Primary: "n",
-			Msg:     "next pane",
-		},
-		{
-			Primary: "p",
-			Msg:     "previous pane",
-		},
-		{
-			Primary: "h",
-			Aliases: []string{"←"},
-			Msg:     "move left",
-		},
-		{
-			Primary: "j",
-			Aliases: []string{"↓"},
-			Msg:     "move down",
-		},
-		{
-			Primary: "k",
-			Aliases: []string{"↑"},
-			Msg:     "move up",
-		},
-		{
-			Primary: "l",
-			Aliases: []string{"→"},
-			Msg:     "move right",
-		},
-	},
+	}
 }

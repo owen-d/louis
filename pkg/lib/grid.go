@@ -68,7 +68,7 @@ func (g Grid) View() string {
 	for _, row := range g.rows {
 		merger := make(CrossMerge, 0, len(row))
 		for _, v := range row {
-			merger = append(merger, v.Drawable())
+			merger = append(merger, v.Drawer())
 		}
 		mergers = append(mergers, merger.Intersperse(MergableSep{
 			Sep: " ",
