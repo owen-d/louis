@@ -6,6 +6,8 @@ import (
 	"github.com/muesli/termenv"
 )
 
+var profile = termenv.ColorProfile() // keep a process wide reference to the color profile.
+
 type index struct {
 	color   termenv.Color
 	xs      []rune
@@ -16,17 +18,11 @@ type Overlay struct {
 	xs []index
 }
 
-func (o *Overlay) IsEmpty() bool {
-	return len(o.xs) == 0
-}
-
-// impl Drawable as well for convenience
 func (o *Overlay) Drawer() Drawer {
-	x := &Overlay{
-		xs: make([]index, len(o.xs)),
-	}
+	x := overlayDraw(*o)
+	x.xs = make([]index, len(o.xs))
 	_ = copy(x.xs, o.xs)
-	return x
+	return &x
 
 }
 
@@ -43,7 +39,15 @@ func (o *Overlay) Add(s string, c termenv.Color) {
 	}
 }
 
-func (o *Overlay) Draw(n int) string {
+// Ensure the drawable type is hidden to prevent accidentally writing to an overlay while it's being drawn.
+type overlayDraw Overlay
+
+func (o *overlayDraw) IsEmpty() bool {
+	return len(o.xs) == 0
+}
+
+// Draw uses a line wrapping strategy and helps implement Drawer.
+func (o *overlayDraw) Draw(n int) string {
 	if o.IsEmpty() {
 		return ""
 	}
@@ -83,7 +87,7 @@ func (o *Overlay) Draw(n int) string {
 	return b.String()
 }
 
-func (o *Overlay) Advance() {
+func (o *overlayDraw) Advance() {
 	if o.IsEmpty() {
 		return
 	}

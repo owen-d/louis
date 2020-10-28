@@ -25,7 +25,7 @@ func (i Intent) View() string {
 func (i Intent) Drawer() Drawer {
 	var o Overlay
 	o.Add(i.View(), nil)
-	return &o
+	return o.Drawer()
 }
 
 type HelpPane struct {
