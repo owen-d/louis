@@ -13,8 +13,8 @@ func CenterTo(msg string, ln int) string {
 	}
 
 	div := rem / 2
-	msg = runewidth.FillLeft(msg, msgLn+div)
-	msg = runewidth.FillRight(msg, ln)
+	msg = LPad(msg, msgLn+div)
+	msg = RPad(msg, ln)
 	return msg
 }
 
