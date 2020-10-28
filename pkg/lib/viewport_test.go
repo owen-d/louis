@@ -33,11 +33,6 @@ func TestViewport_Draw(t *testing.T) {
 		out.WriteString("\n")
 	}
 
-	var expected strings.Builder
-	for i := 0; i < v.ModelHeight; i++ {
-		x := data[i]
-		expected.WriteString(ExactWidth(x, v.ModelWidth) + "\n")
-	}
-
-	require.Equal(t, expected.String(), out.String())
+	expected := strings.Join(data[:v.ModelHeight], "\n") + "\n"
+	require.Equal(t, expected, out.String())
 }

@@ -1,8 +1,6 @@
 package lib
 
 import (
-	"strings"
-
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -29,7 +27,7 @@ func (NoopDrawable) Drawer() Drawer { return NoopDrawer{} }
 
 type NoopDrawer struct{}
 
-func (NoopDrawer) Draw(n int) string { return strings.Repeat(" ", n) }
+func (NoopDrawer) Draw(n int) string { return "" }
 func (NoopDrawer) Advance()          {}
 
 type Mempty struct{}

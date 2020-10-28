@@ -94,7 +94,14 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		for _, stream := range msg.Data.Result.(loghttp.Streams) {
 			o.Add("{", nil)
+			shouldComma := false
 			for k, v := range stream.Labels {
+				// add separator for prev entry
+				if !shouldComma {
+					shouldComma = true
+				} else {
+					o.Add(", ", nil)
+				}
 				o.Add(k+"=", nil)
 				o.Add(fmt.Sprintf(`"%s"`, v), termenv.ANSIYellow)
 			}

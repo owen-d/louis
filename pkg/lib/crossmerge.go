@@ -50,7 +50,7 @@ func (c CrossMerge) Width() (res int) {
 
 }
 
-func (c CrossMerge) Lines() (lines []string) {
+func (c CrossMerge) View() string {
 	var maxLines int
 	for _, x := range c {
 		if height := x.Height(); height > maxLines {
@@ -58,22 +58,24 @@ func (c CrossMerge) Lines() (lines []string) {
 		}
 	}
 
+	var sb strings.Builder
+
 	for i := 0; i < maxLines; i++ {
-		var line string
 		for _, x := range c {
-			line += x.Draw(x.Width())
-			x.Advance()
+			drawer := ExactWidthDrawer{x}
+			addition := drawer.Draw(x.Width())
+			sb.WriteString(addition)
+			drawer.Advance()
 		}
 
-		lines = append(lines, line)
+		if i < maxLines-1 {
+			sb.WriteString("\n")
+		}
+
 	}
 
-	return lines
+	return sb.String()
 
-}
-
-func (c CrossMerge) View() string {
-	return strings.Join(c.Lines(), "\n")
 }
 
 func (c CrossMerge) Intersperse(x CrossMergable) CrossMerge {

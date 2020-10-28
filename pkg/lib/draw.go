@@ -11,7 +11,7 @@ type Drawable interface {
 }
 
 type Drawer interface {
-	Draw(n int) string // draw n width
+	Draw(n int) string // draw up to n width, but no longer.
 	Advance()          // newline
 }
 
@@ -21,4 +21,13 @@ func (s Content) Drawer() Drawer {
 	var o Overlay
 	o.Add(string(s), nil)
 	return &o
+}
+
+type ExactWidthDrawer struct {
+	Drawer
+}
+
+func (d ExactWidthDrawer) Draw(n int) string {
+	out := d.Drawer.Draw(n)
+	return ExactWidth(out, n)
 }

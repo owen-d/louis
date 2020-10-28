@@ -17,7 +17,10 @@ func (v *Viewport) Width() int { return v.ModelWidth }
 func (v *Viewport) Height() int { return v.ModelHeight }
 
 func (v Viewport) Drawer() *ViewportDrawer {
-	return &ViewportDrawer{Viewport: v, Drawer: v.Component.Drawer()}
+	return &ViewportDrawer{
+		Viewport: v,
+		Drawer:   v.Component.Drawer(),
+	}
 }
 
 type ViewportDrawer struct {
@@ -144,11 +147,9 @@ func (v *viewports) View() string {
 
 	merger := CrossMerge{
 		v.params.Drawer(),
-		v.separator,
 		v.labels.Drawer(),
-		v.separator,
 		v.logs.Drawer(),
-	}
+	}.Intersperse(v.separator)
 
 	return strings.Join(
 		[]string{

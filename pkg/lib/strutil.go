@@ -75,5 +75,5 @@ func Truncate(msg string, ln int) string {
 
 // ExaExactWidth truncate a message to a particular length or add right padding until the length is hit.
 func ExactWidth(msg string, ln int) string {
-	return runewidth.FillRight(Truncate(msg, ln), ln)
+	return RPad(msg, ln)
 }

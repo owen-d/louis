@@ -45,7 +45,7 @@ func (o *Overlay) Add(s string, c termenv.Color) {
 
 func (o *Overlay) Draw(n int) string {
 	if o.IsEmpty() {
-		return RPad(" ", n)
+		return ""
 	}
 
 	var ln int
@@ -80,9 +80,7 @@ func (o *Overlay) Draw(n int) string {
 
 	o.xs = o.xs[newStart:]
 
-	// add any additional padding if needed
-	out := RPad(b.String(), n)
-	return out
+	return b.String()
 }
 
 func (o *Overlay) Advance() {
