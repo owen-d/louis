@@ -12,7 +12,7 @@ func TestPad(t *testing.T) {
 	require.Equal(t, s+"  ", RPad(s, 4))
 }
 
-func TestOverlay(t *testing.T) {
+func TestOverlayDraw(t *testing.T) {
 	var o Overlay
 
 	require.Equal(t, "  ", o.Draw(2))
@@ -30,4 +30,20 @@ func TestOverlay(t *testing.T) {
 	)
 	o.Advance()
 	require.Equal(t, "mno", o.Draw(3))
+}
+
+type s struct{ xs []int }
+
+func (in *s) copy() *s {
+	tmp := *in
+	return &tmp
+}
+
+func TestOverlayMultiDraw(t *testing.T) {
+	var o Overlay
+	o.Add(`ok`, nil)
+	require.Equal(t, "ok", o.Drawer().Draw(2))
+	require.Equal(t, "ok", o.Drawer().Draw(2))
+	require.Equal(t, "ok", o.Draw(2))
+	require.Equal(t, "  ", o.Draw(2))
 }

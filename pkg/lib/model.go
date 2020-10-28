@@ -65,14 +65,10 @@ func (m *Model) Init() tea.Cmd {
 		Sep: " │ ",
 	}
 
-	var garbage string
-	for i := 0; i < 200; i++ {
-		garbage += fmt.Sprintf("%d - lorem ipsum\n", i)
-	}
 	m.params = DefaultParams
 	m.views.params.Component = NoopUpdater{Content(m.params.Content())}
-	m.views.labels.Component = NoopUpdater{Content(garbage)}
-	m.views.logs.Component = NoopUpdater{Content(garbage)}
+	m.views.labels.Component = NoopUpdater{Content("")}
+	m.views.logs.Component = NoopUpdater{Content("")}
 	m.views.help = DefaultHelp()
 
 	m.client = &client.DefaultClient{

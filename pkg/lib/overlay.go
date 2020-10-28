@@ -13,7 +13,7 @@ type index struct {
 }
 
 type Overlay struct {
-	xs []*index
+	xs []index
 }
 
 func (o *Overlay) IsEmpty() bool {
@@ -22,19 +22,23 @@ func (o *Overlay) IsEmpty() bool {
 
 // impl Drawable as well for convenience
 func (o *Overlay) Drawer() Drawer {
-	x := *o
-	return &x
+	x := &Overlay{
+		xs: make([]index, len(o.xs)),
+	}
+	_ = copy(x.xs, o.xs)
+	return x
+
 }
 
 func (o *Overlay) Add(s string, c termenv.Color) {
 	delimited := strings.Split(s, "\n")
 	for i, x := range delimited {
-		o.xs = append(o.xs, &index{
+		o.xs = append(o.xs, index{
 			color: c,
 			xs:    []rune(x),
 		})
 		if ln := len(delimited); ln > 1 && i < ln-1 {
-			o.xs = append(o.xs, &index{newline: true})
+			o.xs = append(o.xs, index{newline: true})
 		}
 	}
 }
@@ -48,7 +52,10 @@ func (o *Overlay) Draw(n int) string {
 	var b strings.Builder
 	var newStart int
 
-	for i, x := range o.xs {
+	for i, _ := range o.xs {
+		// We want to mutate the indices, so grab a ref.
+		x := &o.xs[i]
+
 		diff := n - ln
 		if x.newline {
 			newStart = i + 1

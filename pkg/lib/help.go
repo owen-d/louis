@@ -44,7 +44,7 @@ func (h HelpPane) View() string {
 	}
 
 	topBorder := strings.Repeat("─", h.Width)
-	return topBorder + NewGrid(
+	return topBorder + "\n" + NewGrid(
 		0,
 		4,
 		h.Height-1,

@@ -11,6 +11,17 @@ func TestIntent(t *testing.T) {
 	h.Width = 100
 	h.Height = 10
 
-	require.Equal(t, "x", h.View())
+	expected := `────────────────────────────────────────────────────────────────────────────────────────────────────
+q (or C-c) -> quit     n -> next pane         p -> previous pane     h (or ←) -> move left 
+                                                                                           
+                                                                                           
+                                                                                           
+j (or ↓) -> move down  k (or ↑) -> move up    l (or →) -> move right
+                                                                    
+                                                                    
+                                                                    
+`
+
+	require.Equal(t, expected, h.View())
 
 }

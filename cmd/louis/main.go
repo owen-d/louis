@@ -33,11 +33,13 @@ func main() {
 
 	// Use the full size of the terminal in its "alternate screen buffer"
 	p.EnterAltScreen()
-	defer p.ExitAltScreen()
-
 	// We also turn on mouse support so we can track the mouse wheel
 	p.EnableMouseCellMotion()
-	defer p.DisableMouseCellMotion()
+	defer func() {
+		_ = recover()
+		p.ExitAltScreen()
+		p.DisableMouseCellMotion()
+	}()
 
 	if err := p.Start(); err != nil {
 		fmt.Println("could not run program:", err)
