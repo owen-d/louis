@@ -28,7 +28,8 @@ func TestViewport_Draw(t *testing.T) {
 	d := v.Drawer()
 	var out strings.Builder
 	for i := 0; i < d.ModelHeight; i++ {
-		out.WriteString(d.Draw(v.ModelWidth))
+		s := renderables(d.Draw(v.ModelWidth)).String()
+		out.WriteString(s)
 		d.Advance()
 		out.WriteString("\n")
 	}

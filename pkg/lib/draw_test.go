@@ -3,6 +3,7 @@ package lib
 import (
 	"testing"
 
+	"github.com/muesli/reflow/ansi"
 	"github.com/stretchr/testify/require"
 )
 
@@ -10,13 +11,20 @@ func Test_ExactWidthDrawer(t *testing.T) {
 	var o Overlay
 	o.Add("foo\nbar", nil)
 
-	require.Equal(t, "fo", ExactWidthDrawer{o.Drawer()}.Draw(2))
-	require.Equal(t, "foo", ExactWidthDrawer{o.Drawer()}.Draw(3))
-	require.Equal(t, "foo ", ExactWidthDrawer{o.Drawer()}.Draw(4))
+	for _, tc := range []string{
+		"fo", "foo", "foo ",
+	} {
+		var r Renderer
+		ln := ansi.PrintableRuneWidth(tc)
+		out := r.Draw(ExactWidthDrawer{o.Drawer()}.Draw(ln))
+		require.Equal(t, tc, out)
+	}
 
+	// test advance
+	var r Renderer
 	d := ExactWidthDrawer{o.Drawer()}
-	require.Equal(t, "foo ", d.Draw(4))
+	require.Equal(t, "foo ", r.Draw(d.Draw(4)))
 	d.Advance()
-	require.Equal(t, "bar ", d.Draw(4))
+	require.Equal(t, "bar ", r.Draw(d.Draw(4)))
 
 }

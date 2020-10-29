@@ -10,7 +10,7 @@ type Drawable interface {
 
 // Drawer is a view specific interface that can be used to draw something to screen.
 type Drawer interface {
-	Draw(n int) string // Request up to an n length string for drawing, but no longer.
+	Draw(n int) []Renderable // Request up to n length drawing, but no longer.
 	// Advance a newline. Different strategies could be implemented here,
 	// for instance line-wrapping vs clipping.
 	Advance()
@@ -28,7 +28,14 @@ type ExactWidthDrawer struct {
 	Drawer
 }
 
-func (d ExactWidthDrawer) Draw(n int) string {
-	out := d.Drawer.Draw(n)
-	return ExactWidth(out, n)
+func (d ExactWidthDrawer) Draw(n int) []Renderable {
+	toDraw := d.Drawer.Draw(n)
+
+	remaining := n - Renderables(toDraw).Width()
+	if remaining > 0 {
+		toDraw = append(toDraw, Content(Padding(remaining)).Drawer().Draw(remaining)...)
+	}
+
+	return toDraw
+
 }

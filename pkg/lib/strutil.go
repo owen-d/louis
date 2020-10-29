@@ -18,6 +18,10 @@ func CenterTo(msg string, ln int) string {
 	return msg
 }
 
+func Padding(ln int) string {
+	return RPad("", ln)
+}
+
 func RPad(msg string, ln int) string {
 	return RPadWith(msg, ' ', ln)
 }

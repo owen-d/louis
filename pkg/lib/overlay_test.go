@@ -15,24 +15,24 @@ func TestPad(t *testing.T) {
 func TestOverlayDraw(t *testing.T) {
 	var o Overlay
 
-	require.Equal(t, "", o.Drawer().Draw(2))
+	require.Equal(t, "", quickRender(2, o.Drawer()))
 
 	o.Add("abc\ndef", nil)
 	o.Add("ghi", termenv.ANSIYellow)
 	o.Add("jkl\nmno\np", nil)
 
 	d := o.Drawer()
-	require.Equal(t, "abc", d.Draw(4))
-	require.Equal(t, "def"+termenv.String("gh").Foreground(profile.Convert(termenv.ANSIYellow)).String(), d.Draw(5))
+	require.Equal(t, "abc", quickRender(4, d))
+	require.Equal(t, "def"+termenv.String("gh").Foreground(profile.Convert(termenv.ANSIYellow)).String(), quickRender(5, d))
 	require.Equal(
 		t,
 		termenv.String("i").Foreground(profile.Convert(termenv.ANSIYellow)).String()+"jkl",
-		d.Draw(5),
+		quickRender(5, d),
 	)
 	d.Advance()
-	require.Equal(t, "mn", d.Draw(2))
+	require.Equal(t, "mn", quickRender(2, d))
 	d.Advance() // skip remaining "o" on this line
-	require.Equal(t, "p", d.Draw(2))
+	require.Equal(t, "p", quickRender(2, d))
 }
 
 type s struct{ xs []int }
@@ -45,10 +45,10 @@ func (in *s) copy() *s {
 func TestOverlayMultiDraw(t *testing.T) {
 	var o Overlay
 	o.Add(`ok`, nil)
-	require.Equal(t, "ok", o.Drawer().Draw(2))
-	require.Equal(t, "ok", o.Drawer().Draw(2))
+	require.Equal(t, "ok", quickRender(2, o.Drawer()))
+	require.Equal(t, "ok", quickRender(2, o.Drawer()))
 
 	d := o.Drawer()
-	require.Equal(t, "ok", d.Draw(2))
-	require.Equal(t, "", d.Draw(2))
+	require.Equal(t, "ok", quickRender(2, d))
+	require.Equal(t, "", quickRender(2, d))
 }

@@ -31,13 +31,12 @@ func (NoopDrawable) Drawer() Drawer { return NoopDrawer{} }
 
 type NoopDrawer struct{}
 
-func (NoopDrawer) Draw(n int) string { return "" }
-func (NoopDrawer) Advance()          {}
+func (NoopDrawer) Draw(n int) []Renderable { return nil }
+func (NoopDrawer) Advance()                {}
 
-// The empty component, affectionately named after the empty Monoid from Haskell.
-// This technically satisfies the Component interface, but does nothing
-type Mempty struct{}
+// The empty component. This technically satisfies the Component interface, but does nothing.
+type Empty struct{}
 
-func (Mempty) Update(_ tea.Msg) tea.Cmd { return nil }
+func (Empty) Update(_ tea.Msg) tea.Cmd { return nil }
 
-func (Mempty) View() string { return "" }
+func (Empty) View() string { return "" }

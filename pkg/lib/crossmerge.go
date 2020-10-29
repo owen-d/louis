@@ -26,8 +26,12 @@ type MergableSep struct {
 	Sep string
 }
 
-func (s MergableSep) Draw(n int) string {
-	return Truncate(s.Sep, n)
+func (s MergableSep) Draw(n int) []Renderable {
+	return []Renderable{
+		&Index{
+			xs: []rune(Truncate(s.Sep, n)),
+		},
+	}
 }
 
 func (s MergableSep) Advance() {}
@@ -63,8 +67,8 @@ func (c CrossMerge) View() string {
 	for i := 0; i < maxLines; i++ {
 		for _, x := range c {
 			drawer := ExactWidthDrawer{x}
-			addition := drawer.Draw(x.Width())
-			sb.WriteString(addition)
+			additions := drawer.Draw(x.Width())
+			sb.WriteString(renderables(additions).String())
 			drawer.Advance()
 		}
 

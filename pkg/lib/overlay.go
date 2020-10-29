@@ -8,19 +8,13 @@ import (
 
 var profile = termenv.ColorProfile() // keep a process wide reference to the color profile.
 
-type index struct {
-	color   termenv.Color
-	xs      []rune
-	newline bool // if it holds a newline delimiter instead of a string
-}
-
 type Overlay struct {
-	xs []index
+	xs []Index
 }
 
 func (o *Overlay) Drawer() Drawer {
 	x := overlayDraw(*o)
-	x.xs = make([]index, len(o.xs))
+	x.xs = make([]Index, len(o.xs))
 	_ = copy(x.xs, o.xs)
 	return &x
 
@@ -29,12 +23,12 @@ func (o *Overlay) Drawer() Drawer {
 func (o *Overlay) Add(s string, c termenv.Color) {
 	delimited := strings.Split(s, "\n")
 	for i, x := range delimited {
-		o.xs = append(o.xs, index{
+		o.xs = append(o.xs, Index{
 			color: c,
 			xs:    []rune(x),
 		})
 		if ln := len(delimited); ln > 1 && i < ln-1 {
-			o.xs = append(o.xs, index{newline: true})
+			o.xs = append(o.xs, Index{newline: true})
 		}
 	}
 }
@@ -47,13 +41,12 @@ func (o *overlayDraw) IsEmpty() bool {
 }
 
 // Draw uses a line wrapping strategy and helps implement Drawer.
-func (o *overlayDraw) Draw(n int) string {
+func (o *overlayDraw) Draw(n int) (results []Renderable) {
 	if o.IsEmpty() {
-		return ""
+		return nil
 	}
 
 	var ln int
-	var b strings.Builder
 	var newStart int
 
 	for i, _ := range o.xs {
@@ -71,8 +64,11 @@ func (o *overlayDraw) Draw(n int) string {
 		}
 
 		usable := min(diff, len(x.xs))
-		sub := termenv.String(string(x.xs[0:usable])).Foreground(profile.Convert(x.color))
-		b.WriteString(sub.String())
+
+		results = append(results, &Index{
+			color: x.color,
+			xs:    x.xs[0:usable],
+		})
 		ln = ln + usable
 
 		x.xs = x.xs[usable:]
@@ -83,8 +79,7 @@ func (o *overlayDraw) Draw(n int) string {
 	}
 
 	o.xs = o.xs[newStart:]
-
-	return b.String()
+	return results
 }
 
 func (o *overlayDraw) Advance() {
@@ -97,3 +92,17 @@ func (o *overlayDraw) Advance() {
 	}
 
 }
+
+type Index struct {
+	color   termenv.Color
+	xs      []rune
+	newline bool // if it holds a newline delimiter instead of a string
+}
+
+func (i *Index) Style() Style {
+	return Style{
+		Foreground: i.color,
+	}
+}
+
+func (i *Index) String() string { return string(i.xs) }
