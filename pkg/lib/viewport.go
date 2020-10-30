@@ -91,13 +91,11 @@ func (v *viewports) Size(msg tea.WindowSizeMsg) {
 		v.ready = true
 	}
 
-	v.help.height = 4
+	v.help.height = 3
 	v.help.width = v.totals.Width
 
-	withoutHeaders := msg.Height - 3
-	withoutHelp := withoutHeaders - v.help.Height()
-
-	height := withoutHelp
+	// height = msgHeight - header height - footer margin - footer height
+	height := msg.Height - 3 - 1 - v.help.height
 
 	v.params.ModelHeight = height
 	v.labels.ModelHeight = height
@@ -141,22 +139,24 @@ func (v *viewports) header() string {
 }
 
 func (v *viewports) Drawer() Drawer {
-	return NewVMerge(
-		NewHeightDrawer(3, Content(v.header()).Drawer()),
-		NewHeightDrawer(
-			v.params.Height(),
-			CrossMerge{
-				v.params.Drawer(),
-				v.labels.Drawer(),
-				v.logs.Drawer(),
-			}.Intersperse(v.separator),
+	return ExactWidthDrawer{
+		NewVMerge(
+			NewHeightDrawer(3, Content(v.header()).Drawer()),
+			NewHeightDrawer(
+				v.params.Height(),
+				CrossMerge{
+					v.params.Drawer(),
+					v.labels.Drawer(),
+					v.logs.Drawer(),
+				}.Intersperse(v.separator),
+			),
+			NewHeightDrawer(
+				1,
+				Content(RPadWith("", '─', v.totals.Width)).Drawer(),
+			),
+			v.help.Drawer(),
 		),
-		NewHeightDrawer(
-			1,
-			Content(RPadWith("", '─', v.totals.Width)).Drawer(),
-		),
-		v.help.Drawer(),
-	)
+	}
 }
 
 func (v *viewports) View() string {
@@ -164,7 +164,8 @@ func (v *viewports) View() string {
 	d := v.Drawer()
 
 	for i := 0; i < v.totals.Height; i++ {
-		b.WriteString(quickRender(v.totals.Width, d))
+		str := quickRender(v.totals.Width, d)
+		b.WriteString(str)
 		d.Advance()
 	}
 
