@@ -165,6 +165,7 @@ func (v *viewports) View() string {
 
 	for i := 0; i < v.totals.Height; i++ {
 		b.WriteString(quickRender(v.totals.Width, d))
+		d.Advance()
 	}
 
 	return b.String()
