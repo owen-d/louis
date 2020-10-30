@@ -16,15 +16,15 @@ func Test_ExactWidthDrawer(t *testing.T) {
 	} {
 		var r Renderer
 		ln := ansi.PrintableRuneWidth(tc)
-		out := r.Draw(ExactWidthDrawer{o.Drawer()}.Draw(ln))
+		out := r.Render(ExactWidthDrawer{o.Drawer()}.Draw(ln))
 		require.Equal(t, tc, out)
 	}
 
 	// test advance
 	var r Renderer
 	d := ExactWidthDrawer{o.Drawer()}
-	require.Equal(t, "foo ", r.Draw(d.Draw(4)))
+	require.Equal(t, "foo ", r.Render(d.Draw(4)))
 	d.Advance()
-	require.Equal(t, "bar ", r.Draw(d.Draw(4)))
+	require.Equal(t, "bar ", r.Render(d.Draw(4)))
 
 }

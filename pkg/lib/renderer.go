@@ -18,7 +18,7 @@ type Style struct {
 
 type Renderer struct{}
 
-func (r Renderer) Draw(xs []Renderable) string {
+func (r Renderer) Render(xs []Renderable) string {
 	var b strings.Builder
 
 	for _, x := range xs {
@@ -34,7 +34,7 @@ func (r Renderer) Draw(xs []Renderable) string {
 
 func quickRender(n int, d Drawer) string {
 	var r Renderer
-	return r.Draw(d.Draw(n))
+	return r.Render(d.Draw(n))
 }
 
 type Renderables []Renderable
