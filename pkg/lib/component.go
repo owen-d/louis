@@ -31,8 +31,8 @@ func (NoopDrawable) Drawer() Drawer { return NoopDrawer{} }
 
 type NoopDrawer struct{}
 
-func (NoopDrawer) Draw(n int) []Renderable { return nil }
-func (NoopDrawer) Advance()                {}
+func (NoopDrawer) Draw(n int) Renderables { return nil }
+func (NoopDrawer) Advance()               {}
 
 // The empty component. This technically satisfies the Component interface, but does nothing.
 type Empty struct{}

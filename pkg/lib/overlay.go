@@ -21,6 +21,10 @@ func (o *Overlay) Drawer() Drawer {
 }
 
 func (o *Overlay) Add(s string, c termenv.Color) {
+	if len(s) < 1 {
+		return
+	}
+
 	delimited := strings.Split(s, "\n")
 	for i, x := range delimited {
 		o.xs = append(o.xs, Index{
@@ -41,7 +45,7 @@ func (o *overlayDraw) IsEmpty() bool {
 }
 
 // Draw uses a line wrapping strategy and helps implement Drawer.
-func (o *overlayDraw) Draw(n int) (results []Renderable) {
+func (o *overlayDraw) Draw(n int) (results Renderables) {
 	if o.IsEmpty() {
 		return nil
 	}
@@ -106,3 +110,5 @@ func (i *Index) Style() Style {
 }
 
 func (i *Index) String() string { return string(i.xs) }
+
+func (i *Index) Width() int { return len(i.xs) }

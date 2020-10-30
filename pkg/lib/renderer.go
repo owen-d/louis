@@ -3,12 +3,12 @@ package lib
 import (
 	"strings"
 
-	"github.com/muesli/reflow/ansi"
 	"github.com/muesli/termenv"
 )
 
 type Renderable interface {
 	Style() Style
+	Width() int
 	String() string
 }
 
@@ -19,26 +19,6 @@ type Style struct {
 type Renderer struct{}
 
 func (r Renderer) Draw(xs []Renderable) string {
-	return renderables(xs).String()
-}
-
-func quickRender(n int, d Drawer) string {
-	var r Renderer
-	return r.Draw(d.Draw(n))
-}
-
-type Renderables []Renderable
-
-func (xs Renderables) Width() (res int) {
-	for _, x := range xs {
-		res += ansi.PrintableRuneWidth(x.String())
-	}
-	return res
-}
-
-type renderables []Renderable
-
-func (xs renderables) String() string {
 	var b strings.Builder
 
 	for _, x := range xs {
@@ -50,4 +30,18 @@ func (xs renderables) String() string {
 	}
 	return b.String()
 
+}
+
+func quickRender(n int, d Drawer) string {
+	var r Renderer
+	return r.Draw(d.Draw(n))
+}
+
+type Renderables []Renderable
+
+func (xs Renderables) Width() (res int) {
+	for _, x := range xs {
+		res += x.Width()
+	}
+	return res
 }

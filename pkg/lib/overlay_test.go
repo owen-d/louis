@@ -35,13 +35,6 @@ func TestOverlayDraw(t *testing.T) {
 	require.Equal(t, "p", quickRender(2, d))
 }
 
-type s struct{ xs []int }
-
-func (in *s) copy() *s {
-	tmp := *in
-	return &tmp
-}
-
 func TestOverlayMultiDraw(t *testing.T) {
 	var o Overlay
 	o.Add(`ok`, nil)

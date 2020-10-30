@@ -91,11 +91,11 @@ func (v *viewports) Size(msg tea.WindowSizeMsg) {
 		v.ready = true
 	}
 
-	v.help.Height = 4
-	v.help.Width = v.totals.Width
+	v.help.height = 4
+	v.help.width = v.totals.Width
 
 	withoutHeaders := msg.Height - 3
-	withoutHelp := withoutHeaders - v.help.Height
+	withoutHelp := withoutHeaders - v.help.Height()
 
 	height := withoutHelp
 
@@ -140,23 +140,33 @@ func (v *viewports) header() string {
 	return strings.Join([]string{headerTop, headerMid, headerBot}, "\n")
 }
 
+func (v *viewports) Drawer() Drawer {
+	return NewVMerge(
+		NewHeightDrawer(3, Content(v.header()).Drawer()),
+		NewHeightDrawer(
+			v.params.Height(),
+			CrossMerge{
+				v.params.Drawer(),
+				v.labels.Drawer(),
+				v.logs.Drawer(),
+			}.Intersperse(v.separator),
+		),
+		NewHeightDrawer(
+			1,
+			Content(RPadWith("", '─', v.totals.Width)).Drawer(),
+		),
+		v.help.Drawer(),
+	)
+}
+
 func (v *viewports) View() string {
-	if !v.ready {
-		return "\n  Initializing..."
+	var b strings.Builder
+	d := v.Drawer()
+
+	for i := 0; i < v.totals.Height; i++ {
+		b.WriteString(quickRender(v.totals.Width, d))
 	}
 
-	merger := CrossMerge{
-		v.params.Drawer(),
-		v.labels.Drawer(),
-		v.logs.Drawer(),
-	}.Intersperse(v.separator)
+	return b.String()
 
-	return strings.Join(
-		[]string{
-			v.header(),
-			merger.View(),
-			v.help.View(),
-		},
-		"\n",
-	)
 }

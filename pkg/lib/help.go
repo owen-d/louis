@@ -29,11 +29,15 @@ func (i Intent) Drawer() Drawer {
 }
 
 type HelpPane struct {
-	Height, Width int
+	height, width int
 	intents       []Intent
 }
 
-func (h HelpPane) View() string {
+func (h HelpPane) Height() int {
+	return h.height
+}
+
+func (h HelpPane) Drawer() *Grid {
 	var minColumWidth int
 	vs := make([]Drawable, 0, len(h.intents))
 	for _, intent := range h.intents {
@@ -43,22 +47,21 @@ func (h HelpPane) View() string {
 		}
 	}
 
-	topBorder := strings.Repeat("─", h.Width)
-	return topBorder + "\n" + NewGrid(
+	return NewGrid(
 		0,
 		4,
-		h.Height-1,
-		h.Width,
+		h.height-1,
+		h.width,
 		minColumWidth,
 		7,
 		vs...,
-	).View()
+	)
 }
 
 func DefaultHelp() HelpPane {
 	return HelpPane{
-		Height: 0,
-		Width:  0,
+		height: 0,
+		width:  0,
 		intents: []Intent{
 			{
 				Primary: "q",

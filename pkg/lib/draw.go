@@ -9,8 +9,9 @@ type Drawable interface {
 }
 
 // Drawer is a view specific interface that can be used to draw something to screen.
+// Questions: Do we want Draw() to be callable multiple times per line? Currently I assume it's called once per line.
 type Drawer interface {
-	Draw(n int) []Renderable // Request up to n length drawing, but no longer.
+	Draw(n int) Renderables // Request up to n length drawing, but no longer.
 	// Advance a newline. Different strategies could be implemented here,
 	// for instance line-wrapping vs clipping.
 	Advance()
@@ -28,7 +29,7 @@ type ExactWidthDrawer struct {
 	Drawer
 }
 
-func (d ExactWidthDrawer) Draw(n int) []Renderable {
+func (d ExactWidthDrawer) Draw(n int) Renderables {
 	toDraw := d.Drawer.Draw(n)
 
 	remaining := n - Renderables(toDraw).Width()

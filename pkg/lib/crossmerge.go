@@ -1,8 +1,6 @@
 package lib
 
 import (
-	"strings"
-
 	"github.com/muesli/reflow/ansi"
 )
 
@@ -18,7 +16,6 @@ Idea here is to merge views which combine horizontally (on the same line)
 
 type CrossMergable interface {
 	Drawer
-	Height() int
 	Width() int
 }
 
@@ -26,7 +23,7 @@ type MergableSep struct {
 	Sep string
 }
 
-func (s MergableSep) Draw(n int) []Renderable {
+func (s MergableSep) Draw(n int) Renderables {
 	return []Renderable{
 		&Index{
 			xs: []rune(Truncate(s.Sep, n)),
@@ -41,7 +38,7 @@ func (s MergableSep) Width() int {
 }
 
 func (s MergableSep) Height() int {
-	return 0
+	return 1
 }
 
 type CrossMerge []CrossMergable
@@ -51,35 +48,25 @@ func (c CrossMerge) Width() (res int) {
 		res += x.Width()
 	}
 	return
-
 }
 
-func (c CrossMerge) View() string {
-	var maxLines int
+func (c CrossMerge) Draw(n int) (res Renderables) {
+	rem := n
+	var i int
+	for ; rem > 0 && i < len(c); i++ {
+		d := ExactWidthDrawer{c[i]}
+		// draw up to the drawer's width or rem, whichever is smaller
+		additions := d.Draw(min(rem, c[i].Width()))
+		rem -= additions.Width()
+		res = append(res, additions...)
+	}
+	return res
+}
+
+func (c CrossMerge) Advance() {
 	for _, x := range c {
-		if height := x.Height(); height > maxLines {
-			maxLines = height
-		}
+		x.Advance()
 	}
-
-	var sb strings.Builder
-
-	for i := 0; i < maxLines; i++ {
-		for _, x := range c {
-			drawer := ExactWidthDrawer{x}
-			additions := drawer.Draw(x.Width())
-			sb.WriteString(renderables(additions).String())
-			drawer.Advance()
-		}
-
-		if i < maxLines-1 {
-			sb.WriteString("\n")
-		}
-
-	}
-
-	return sb.String()
-
 }
 
 func (c CrossMerge) Intersperse(x CrossMergable) CrossMerge {
