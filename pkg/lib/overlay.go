@@ -12,8 +12,8 @@ type Overlay struct {
 	xs []Index
 }
 
-func (o *Overlay) Drawer() Drawer {
-	x := overlayDraw(*o)
+func (o Overlay) Drawer() Drawer {
+	x := overlayDraw(o)
 	x.xs = make([]Index, len(o.xs))
 	_ = copy(x.xs, o.xs)
 	return &x
