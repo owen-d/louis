@@ -16,7 +16,7 @@ func NewVMerge(xs ...VMergable) *VMerge {
 	}
 }
 
-func (v VMerge) Draw(n int) (res Renderables) {
+func (v *VMerge) Draw(n int) (res Renderables) {
 	if len(v.xs) == 0 {
 		return nil
 	}
@@ -24,7 +24,7 @@ func (v VMerge) Draw(n int) (res Renderables) {
 	return v.xs[0].Draw(n)
 }
 
-func (v VMerge) Advance() {
+func (v *VMerge) Advance() {
 	if len(v.xs) == 0 {
 		return
 	}
