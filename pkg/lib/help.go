@@ -13,7 +13,7 @@ type Intent struct {
 	Msg     string
 }
 
-func (i Intent) View() string {
+func (i Intent) String() string {
 	strs := []string{i.Primary}
 	if len(i.Aliases) > 0 {
 		strs = append(strs, fmt.Sprintf("(or %s)", strings.Join(i.Aliases, ",")))
@@ -24,7 +24,7 @@ func (i Intent) View() string {
 
 func (i Intent) Drawer() Drawer {
 	var o Overlay
-	o.Add(i.View(), nil)
+	o.Add(i.String(), nil)
 	return o.Drawer()
 }
 
@@ -42,7 +42,7 @@ func (h HelpPane) Drawer() *Grid {
 	vs := make([]Drawable, 0, len(h.intents))
 	for _, intent := range h.intents {
 		vs = append(vs, intent)
-		if w := ansi.PrintableRuneWidth(intent.View()); minColumWidth < w {
+		if w := ansi.PrintableRuneWidth(intent.String()); minColumWidth < w {
 			minColumWidth = w
 		}
 	}
