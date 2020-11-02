@@ -1,13 +1,11 @@
 package lib
 
 import (
-	"fmt"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/grafana/loki/pkg/loghttp"
 	"github.com/muesli/reflow/ansi"
-	"github.com/muesli/termenv"
 )
 
 type Viewport struct {
@@ -71,25 +69,11 @@ func (v *viewports) Update(msg tea.Msg) tea.Cmd {
 		}
 
 	case *loghttp.QueryResponse:
-		var o Overlay
+		streams := msg.Data.Result.(loghttp.Streams)
 
-		for _, stream := range msg.Data.Result.(loghttp.Streams) {
-			o.Add("{", nil)
-			shouldComma := false
-			for k, v := range stream.Labels {
-				// add separator for prev entry
-				if !shouldComma {
-					shouldComma = true
-				} else {
-					o.Add(", ", nil)
-				}
-				o.Add(k+"=", nil)
-				o.Add(fmt.Sprintf(`"%s"`, v), termenv.ANSIYellow)
-			}
-			o.Add("}", nil)
+		v.labels.Component = NoopUpdater{
+			NewLogData(streams),
 		}
-
-		v.labels.Component = NoopUpdater{&o}
 	}
 
 	cmd := v.focused().Update(msg)

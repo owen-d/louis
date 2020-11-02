@@ -150,9 +150,9 @@ func (p Params) Content() Content {
 var DefaultParams = Params{
 	Matchers: []labels.Matcher{
 		{
-			Type:  labels.MatchEqual,
+			Type:  labels.MatchRegexp,
 			Name:  "job",
-			Value: "loki-dev/query-frontend",
+			Value: "tns-demo/.*",
 		},
 	},
 	Filters: []Filter{
