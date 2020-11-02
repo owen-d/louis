@@ -57,6 +57,8 @@ p := termenv.ColorProfile()
 out = out.Foreground(p.Color("#abcdef"))
 // but also supports ANSI colors (0-255)
 out = out.Background(p.Color("69"))
+// ...or the color.Color interface
+out = out.Foreground(p.FromColor(color.RGBA{255, 128, 0, 255}))
 
 fmt.Println(out)
 ```
@@ -103,11 +105,11 @@ bg := `{{ Background "#0000ff" "Blue Background" }}`
 wrap := `{{ Bold (Underline "Hello World") }}`
 
 // parse and render
-tpl = tpl.Parse(bold)
+tpl, err = tpl.Parse(bold)
 
 var buf bytes.Buffer
 tpl.Execute(&buf, nil)
-fmt.Println(buf)
+fmt.Println(&buf)
 ```
 
 Other available helper functions are: `Faint`, `Italic`, `CrossOut`,

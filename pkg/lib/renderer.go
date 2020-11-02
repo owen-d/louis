@@ -23,8 +23,8 @@ func (r Renderer) Render(xs []Renderable) string {
 
 	for _, x := range xs {
 		s := termenv.String(x.String())
-		if f := x.Style().Foreground; f != nil {
-			s = s.Foreground(profile.Convert(f))
+		if style := x.Style(); style.Foreground != nil {
+			s = s.Foreground(profile.Convert(style.Foreground))
 		}
 		b.WriteString(s.String())
 	}

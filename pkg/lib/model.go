@@ -8,9 +8,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/grafana/loki/pkg/logcli/client"
-	loghttp "github.com/grafana/loki/pkg/loghttp"
 	"github.com/grafana/loki/pkg/logproto"
-	"github.com/muesli/termenv"
 	"github.com/prometheus/prometheus/pkg/labels"
 )
 
@@ -89,26 +87,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.Type == tea.KeyCtrlC || msg.String() == "q" {
 			return m, tea.Quit
 		}
-	case *loghttp.QueryResponse:
-		var o Overlay
-
-		for _, stream := range msg.Data.Result.(loghttp.Streams) {
-			o.Add("{", nil)
-			shouldComma := false
-			for k, v := range stream.Labels {
-				// add separator for prev entry
-				if !shouldComma {
-					shouldComma = true
-				} else {
-					o.Add(", ", nil)
-				}
-				o.Add(k+"=", nil)
-				o.Add(fmt.Sprintf(`"%s"`, v), termenv.ANSIYellow)
-			}
-			o.Add("}", nil)
-		}
-
-		m.views.labels.Component = NoopUpdater{&o}
 	}
 
 	if cmd := m.views.Update(msg); cmd != nil {

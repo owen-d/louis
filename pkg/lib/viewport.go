@@ -1,10 +1,13 @@
 package lib
 
 import (
+	"fmt"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/grafana/loki/pkg/loghttp"
 	"github.com/muesli/reflow/ansi"
+	"github.com/muesli/termenv"
 )
 
 type Viewport struct {
@@ -35,6 +38,9 @@ type viewports struct {
 	separator            MergableSep
 	params, labels, logs Viewport
 	help                 HelpPane
+
+	// data
+	streams loghttp.Streams
 }
 
 func (v *viewports) focused() *Viewport {
@@ -63,6 +69,27 @@ func (v *viewports) Update(msg tea.Msg) tea.Cmd {
 			v.focusPane = v.focusPane.Prev()
 			v.Size(v.totals)
 		}
+
+	case *loghttp.QueryResponse:
+		var o Overlay
+
+		for _, stream := range msg.Data.Result.(loghttp.Streams) {
+			o.Add("{", nil)
+			shouldComma := false
+			for k, v := range stream.Labels {
+				// add separator for prev entry
+				if !shouldComma {
+					shouldComma = true
+				} else {
+					o.Add(", ", nil)
+				}
+				o.Add(k+"=", nil)
+				o.Add(fmt.Sprintf(`"%s"`, v), termenv.ANSIYellow)
+			}
+			o.Add("}", nil)
+		}
+
+		v.labels.Component = NoopUpdater{&o}
 	}
 
 	cmd := v.focused().Update(msg)
