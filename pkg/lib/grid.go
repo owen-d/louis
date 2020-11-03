@@ -80,6 +80,14 @@ func (g *Grid) Draw(n int) (res Renderables) {
 	return g.rows[row].Draw(n)
 }
 
+func (g *Grid) Done() bool {
+	block := g.unitHeight + g.vSpacing
+	// determine if we're drawing a vertical spacer or not
+	row := g.curLine / block
+
+	return row >= len(g.rows)
+}
+
 func (g *Grid) Advance() {
 	block := g.unitHeight + g.vSpacing
 	// determine if we're drawing a vertical spacer or not

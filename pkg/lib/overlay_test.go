@@ -35,6 +35,17 @@ func TestOverlayDraw(t *testing.T) {
 	require.Equal(t, "p", quickRender(2, d))
 }
 
+func TestNewlineEnding(t *testing.T) {
+	var o Overlay
+	o.Add("abcde\nf", nil)
+	d := o.Drawer()
+
+	require.Equal(t, "abc", quickRender(3, d))
+	require.Equal(t, "de", quickRender(3, d))
+	require.Equal(t, "f", quickRender(3, d))
+
+}
+
 func TestOverlayMultiDraw(t *testing.T) {
 	var o Overlay
 	o.Add(`ok`, nil)

@@ -40,30 +40,30 @@ func (o *Overlay) Add(s string, c termenv.Color) {
 // Ensure the drawable type is hidden to prevent accidentally writing to an overlay while it's being drawn.
 type overlayDraw Overlay
 
-func (o *overlayDraw) IsEmpty() bool {
+func (o *overlayDraw) Done() bool {
 	return len(o.xs) == 0
 }
 
 // Draw uses a line wrapping strategy and helps implement Drawer.
 func (o *overlayDraw) Draw(n int) (results Renderables) {
-	if o.IsEmpty() {
+	if o.Done() {
 		return nil
 	}
 
 	var ln int
 	var newStart int
 
-	for i, _ := range o.xs {
+	for i := range o.xs {
 		// We want to mutate the indices, so grab a ref.
 		x := &o.xs[i]
 
 		diff := n - ln
-		if x.newline {
-			newStart = i + 1
+		if diff < 1 {
 			break
 		}
 
-		if diff < 1 {
+		if x.newline {
+			newStart = i + 1
 			break
 		}
 
@@ -87,7 +87,7 @@ func (o *overlayDraw) Draw(n int) (results Renderables) {
 }
 
 func (o *overlayDraw) Advance() {
-	if o.IsEmpty() {
+	if o.Done() {
 		return
 	}
 

@@ -31,7 +31,8 @@ func (s MergableSep) Draw(n int) Renderables {
 	}
 }
 
-func (s MergableSep) Advance() {}
+func (s MergableSep) Advance()   {}
+func (s MergableSep) Done() bool { return true }
 
 func (s MergableSep) Width() int {
 	return ansi.PrintableRuneWidth(s.Sep)
@@ -48,6 +49,15 @@ func (c CrossMerge) Width() (res int) {
 		res += x.Width()
 	}
 	return
+}
+
+func (c CrossMerge) Done() bool {
+	for _, x := range c {
+		if !x.Done() {
+			return false
+		}
+	}
+	return true
 }
 
 func (c CrossMerge) Draw(n int) (res Renderables) {
@@ -83,3 +93,17 @@ func (c CrossMerge) Intersperse(x CrossMergable) CrossMerge {
 	return res
 
 }
+
+type widthDrawer struct {
+	width int
+	Drawer
+}
+
+func NewWidthDrawer(n int, d Drawer) CrossMergable {
+	return &widthDrawer{
+		width:  n,
+		Drawer: d,
+	}
+}
+
+func (d *widthDrawer) Width() int { return d.width }

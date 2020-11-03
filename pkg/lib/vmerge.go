@@ -16,8 +16,12 @@ func NewVMerge(xs ...VMergable) *VMerge {
 	}
 }
 
+func (v *VMerge) Done() bool {
+	return len(v.xs) == 0
+}
+
 func (v *VMerge) Draw(n int) (res Renderables) {
-	if len(v.xs) == 0 {
+	if v.Done() {
 		return nil
 	}
 

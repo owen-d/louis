@@ -15,6 +15,7 @@ type Drawer interface {
 	// Advance a newline. Different strategies could be implemented here,
 	// for instance line-wrapping vs clipping.
 	Advance()
+	Done() bool
 }
 
 type Content string

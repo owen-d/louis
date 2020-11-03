@@ -69,11 +69,7 @@ func (v *viewports) Update(msg tea.Msg) tea.Cmd {
 		}
 
 	case *loghttp.QueryResponse:
-		streams := msg.Data.Result.(loghttp.Streams)
-
-		v.labels.Component = NoopUpdater{
-			NewLogData(streams),
-		}
+		v.streams = msg.Data.Result.(loghttp.Streams)
 	}
 
 	cmd := v.focused().Update(msg)
@@ -157,8 +153,7 @@ func (v *viewports) Drawer() Drawer {
 				v.params.Height(),
 				CrossMerge{
 					v.params.Drawer(),
-					v.labels.Drawer(),
-					v.logs.Drawer(),
+					NewLogData(v.streams, v.labels.Width(), v.logs.Width(), v.separator).Drawer(),
 				}.Intersperse(v.separator),
 			),
 			NewHeightDrawer(
