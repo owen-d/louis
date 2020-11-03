@@ -37,6 +37,7 @@ type LogData struct {
 	entries                streamEntries
 	labelsWidth, logsWidth int
 	sep                    MergableSep
+	NoopUpdater
 }
 
 func NewLogData(streams loghttp.Streams, labelsWidth, logsWidth int, sep MergableSep) *LogData {
@@ -47,6 +48,12 @@ func NewLogData(streams loghttp.Streams, labelsWidth, logsWidth int, sep Mergabl
 		sep:           sep,
 	}
 
+	result.SetStreams(streams)
+	return &result
+
+}
+
+func (d *LogData) SetStreams(streams loghttp.Streams) {
 	colorMap := make(map[string]termenv.Color)
 	for _, stream := range streams {
 		for name := range stream.Labels {
@@ -81,10 +88,10 @@ func NewLogData(streams loghttp.Streams, labelsWidth, logsWidth int, sep Mergabl
 		}
 		o.Add("}\n", nil)
 		fp := ls.Hash()
-		result.coloredLabels[fp] = &o
+		d.coloredLabels[fp] = &o
 
 		for _, entry := range stream.Entries {
-			result.entries = append(result.entries, streamEntry{
+			d.entries = append(d.entries, streamEntry{
 				fp:    fp,
 				Entry: entry,
 			})
@@ -92,8 +99,16 @@ func NewLogData(streams loghttp.Streams, labelsWidth, logsWidth int, sep Mergabl
 
 	}
 
-	sort.Sort(result.entries)
-	return &result
+	sort.Sort(d.entries)
+}
+
+func (d *LogData) SetWidths(labelsWidth, logsWidth int) {
+	d.labelsWidth = labelsWidth
+	d.logsWidth = logsWidth
+}
+
+func (d *LogData) Len() int {
+	return d.entries.Len()
 }
 
 func (d *LogData) Drawer() CrossMergable {

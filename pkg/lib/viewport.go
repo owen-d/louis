@@ -1,7 +1,8 @@
 package lib
 
+// Viewport just embeds a component alongside height/width methods
 type Viewport struct {
-	ModelWidth, ModelHeight, YPosition int
+	ModelWidth, ModelHeight int
 	Component
 }
 

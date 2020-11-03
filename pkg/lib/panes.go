@@ -49,14 +49,15 @@ func (p Pane) Prev() Pane {
 }
 
 type panes struct {
-	totals               tea.WindowSizeMsg
-	focusPane            Pane
-	separator            MergableSep
-	params, labels, logs Viewport
-	help                 HelpPane
+	totals    tea.WindowSizeMsg
+	separator MergableSep
+	params    Content
+	data      *LogData
+	help      HelpPane
 
-	// data
-	streams loghttp.Streams
+	focusPane   Pane
+	paneHeight  int // how tall each pane should be
+	paramsWidth int
 }
 
 func (v *panes) Height() int {
@@ -66,14 +67,13 @@ func (v *panes) Width() int {
 	return v.totals.Width
 }
 
-func (v *panes) focused() *Viewport {
+func (v *panes) focused() Updater {
 	switch v.focusPane {
-	case LabelsPane:
-		return &v.labels
-	case LogsPane:
-		return &v.logs
+	case LabelsPane, LogsPane:
+		return v.data
 	default:
-		return &v.params
+		// params currently isn't a component (TODO)
+		return nil
 	}
 }
 
@@ -94,25 +94,15 @@ func (v *panes) Update(msg tea.Msg) tea.Cmd {
 		}
 
 	case *loghttp.QueryResponse:
-		v.streams = msg.Data.Result.(loghttp.Streams)
+		v.data.SetStreams(msg.Data.Result.(loghttp.Streams))
 	}
 
-	cmd := v.focused().Update(msg)
-	cmds = append(cmds, cmd)
+	if focused := v.focused(); focused != nil {
+		cmd := v.focused().Update(msg)
+		cmds = append(cmds, cmd)
+	}
 
 	return tea.Batch(cmds...)
-}
-
-func (v *panes) selected() (main *Viewport, secondaries []*Viewport) {
-	switch v.focusPane {
-	case LabelsPane:
-		return &v.labels, []*Viewport{&v.params, &v.logs}
-	case LogsPane:
-		return &v.logs, []*Viewport{&v.params, &v.labels}
-	// ParamsPane is the default
-	default:
-		return &v.params, []*Viewport{&v.labels, &v.logs}
-	}
 }
 
 // Size sets pane sizes (primary & secondaries) based on the golden ratio.
@@ -126,17 +116,26 @@ func (v *panes) Size(msg tea.WindowSizeMsg) {
 	// height = msgHeight - header height - footer margin - footer height
 	height := msg.Height - 3 - 1 - v.help.height
 
-	v.params.ModelHeight = height
-	v.labels.ModelHeight = height
-	v.logs.ModelHeight = height
+	v.paneHeight = height
+	primaryWidth := int(float64(width) / GoldenRatio)
+	secondaryWidth := (width - primaryWidth) / 2
 
-	primary := int(float64(width) / GoldenRatio)
-	secondary := (width - primary) / 2
-	main, secondaries := v.selected()
-	main.ModelWidth = primary
-	for _, s := range secondaries {
-		s.ModelWidth = secondary
+	var paramsWidth, labelsWidth, logsWidth int
+	switch v.focusPane {
+	case LabelsPane:
+		labelsWidth = primaryWidth
+		paramsWidth, logsWidth = secondaryWidth, secondaryWidth
+	case LogsPane:
+		logsWidth = primaryWidth
+		paramsWidth, labelsWidth = secondaryWidth, secondaryWidth
+	default:
+		paramsWidth = primaryWidth
+		labelsWidth, logsWidth = secondaryWidth, secondaryWidth
 	}
+
+	v.paramsWidth = paramsWidth
+	v.data.SetWidths(labelsWidth, logsWidth)
+
 }
 
 func (v *panes) header() string {
@@ -146,9 +145,9 @@ func (v *panes) header() string {
 
 	switch pane {
 	case LabelsPane:
-		start = v.params.Width() + v.separator.Width()
+		start = v.paramsWidth + v.separator.Width()
 	case LogsPane:
-		start = v.params.Width()*2 + v.separator.Width()*2 // all non-primary panes have the same size
+		start = v.paramsWidth*2 + v.separator.Width()*2 // all non-primary panes have the same size
 	}
 
 	headerTopFrame := "╭─────────────╮"
@@ -172,10 +171,10 @@ func (v *panes) Drawer() Drawer {
 		NewVMerge(
 			NewHeightDrawer(3, Content(v.header()).Drawer()),
 			NewHeightDrawer(
-				v.params.Height(),
+				v.paneHeight,
 				CrossMerge{
-					v.params.Drawer(),
-					NewLogData(v.streams, v.labels.Width(), v.logs.Width(), v.separator).Drawer(),
+					NewWidthDrawer(v.paramsWidth, v.params.Drawer()),
+					v.data.Drawer(),
 				}.Intersperse(v.separator),
 			),
 			NewHeightDrawer(

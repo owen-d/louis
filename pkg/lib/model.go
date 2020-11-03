@@ -24,9 +24,8 @@ func (m *Model) Init() tea.Cmd {
 	}
 
 	m.params = DefaultParams
-	m.panes.params.Component = NoopUpdater{Content(m.params.Content())}
-	m.panes.labels.Component = NoopUpdater{Content("")}
-	m.panes.logs.Component = NoopUpdater{Content("")}
+	m.panes.params = Content(m.params.Content())
+	m.panes.data = NewLogData(nil, 0, 0, m.panes.separator)
 	m.panes.help = DefaultHelp()
 
 	m.client = &client.DefaultClient{

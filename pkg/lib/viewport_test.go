@@ -19,7 +19,6 @@ func TestViewport_Draw(t *testing.T) {
 	v := Viewport{
 		ModelWidth:  20,
 		ModelHeight: len(data) - 1,
-		YPosition:   0,
 		Component: NoopUpdater{
 			Content(strings.Join(data, "\n")),
 		},
