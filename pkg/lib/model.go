@@ -19,14 +19,19 @@ type Model struct {
 }
 
 func (m *Model) Init() tea.Cmd {
-	m.panes.separator = MergableSep{
+	paneSep := MergableSep{
 		Sep: " │ ",
 	}
 
 	m.params = DefaultParams
-	m.panes.params = Content(m.params.Content())
-	m.panes.data = NewLogData(nil, 0, 0, m.panes.separator)
-	m.panes.help = DefaultHelp()
+	m.panes.Init(
+		paneSep,
+		Content(m.params.Content()),
+		NewLogData(nil, LogDataWidths{
+			LabelsWidth: 0,
+			LogsWidth:   0,
+		}, paneSep),
+	)
 
 	m.client = &client.DefaultClient{
 		Address:  os.Getenv("LOKI_ADDR"),

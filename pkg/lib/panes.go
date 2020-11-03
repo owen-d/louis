@@ -52,12 +52,19 @@ type panes struct {
 	totals    tea.WindowSizeMsg
 	separator MergableSep
 	params    Content
-	data      *LogData
+	data      *LazyScroll
 	help      HelpPane
 
 	focusPane   Pane
 	paneHeight  int // how tall each pane should be
 	paramsWidth int
+}
+
+func (p *panes) Init(sep MergableSep, params Content, data *LogData) {
+	p.separator = sep
+	p.params = params
+	p.data = NewLazyScroll(data)
+	p.help = DefaultHelp()
 }
 
 func (v *panes) Height() int {
@@ -82,19 +89,29 @@ func (v *panes) Update(msg tea.Msg) tea.Cmd {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		v.Size(msg)
+		logDataWidths := v.Size(msg)
+		if cmd := v.data.Update(logDataWidths); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "n":
 			v.focusPane = v.focusPane.Next()
-			v.Size(v.totals)
+			if cmd := v.data.Update(v.Size(v.totals)); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
 		case "p":
 			v.focusPane = v.focusPane.Prev()
-			v.Size(v.totals)
+			if cmd := v.data.Update(v.Size(v.totals)); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
 		}
 
 	case *loghttp.QueryResponse:
-		v.data.SetStreams(msg.Data.Result.(loghttp.Streams))
+		// always load data, even when it's not focused.
+		if cmd := v.data.Update(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
 	}
 
 	if focused := v.focused(); focused != nil {
@@ -106,7 +123,7 @@ func (v *panes) Update(msg tea.Msg) tea.Cmd {
 }
 
 // Size sets pane sizes (primary & secondaries) based on the golden ratio.
-func (v *panes) Size(msg tea.WindowSizeMsg) {
+func (v *panes) Size(msg tea.WindowSizeMsg) *LogDataWidths {
 	v.totals = msg
 	width := msg.Width - v.separator.Width()*2
 
@@ -134,8 +151,11 @@ func (v *panes) Size(msg tea.WindowSizeMsg) {
 	}
 
 	v.paramsWidth = paramsWidth
-	v.data.SetWidths(labelsWidth, logsWidth)
 
+	return &LogDataWidths{
+		LabelsWidth: labelsWidth,
+		LogsWidth:   logsWidth,
+	}
 }
 
 func (v *panes) header() string {
@@ -174,7 +194,7 @@ func (v *panes) Drawer() Drawer {
 				v.paneHeight,
 				CrossMerge{
 					NewWidthDrawer(v.paramsWidth, v.params.Drawer()),
-					v.data.Drawer(),
+					NewWidthDrawer(v.totals.Width-v.paramsWidth, v.data.Drawer()),
 				}.Intersperse(v.separator),
 			),
 			NewHeightDrawer(

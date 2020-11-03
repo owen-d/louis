@@ -1,10 +1,10 @@
 package lib
 
 import (
-	"log"
 	"sort"
 	"strconv"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/grafana/loki/pkg/loghttp"
 	"github.com/muesli/gamut"
 	"github.com/muesli/termenv"
@@ -32,25 +32,36 @@ func (xs streamEntries) Less(i, j int) bool {
 // Swap swaps the elements with indexes i and j.
 func (xs streamEntries) Swap(i, j int) { xs[i], xs[j] = xs[j], xs[i] }
 
-type LogData struct {
-	coloredLabels          map[uint64]*Overlay
-	entries                streamEntries
-	labelsWidth, logsWidth int
-	sep                    MergableSep
-	NoopUpdater
+type LogDataWidths struct {
+	LabelsWidth, LogsWidth int
 }
 
-func NewLogData(streams loghttp.Streams, labelsWidth, logsWidth int, sep MergableSep) *LogData {
+type LogData struct {
+	coloredLabels map[uint64]*Overlay
+	entries       streamEntries
+	sep           MergableSep
+	LogDataWidths
+}
+
+func NewLogData(streams loghttp.Streams, widths LogDataWidths, sep MergableSep) *LogData {
 	result := LogData{
 		coloredLabels: make(map[uint64]*Overlay),
-		labelsWidth:   labelsWidth,
-		logsWidth:     logsWidth,
 		sep:           sep,
+		LogDataWidths: widths,
 	}
 
 	result.SetStreams(streams)
 	return &result
+}
 
+func (d *LogData) Update(msg tea.Msg) tea.Cmd {
+	switch msg := msg.(type) {
+	case *loghttp.QueryResponse:
+		d.SetStreams(msg.Data.Result.(loghttp.Streams))
+	case *LogDataWidths:
+		d.LogDataWidths = *msg
+	}
+	return nil
 }
 
 func (d *LogData) SetStreams(streams loghttp.Streams) {
@@ -63,7 +74,6 @@ func (d *LogData) SetStreams(streams loghttp.Streams) {
 
 	colors, err := gamut.Generate(len(colorMap), gamut.PastelGenerator{})
 	if err != nil {
-		log.Println("error generating colors:", err)
 	}
 
 	var i int
@@ -103,16 +113,20 @@ func (d *LogData) SetStreams(streams loghttp.Streams) {
 }
 
 func (d *LogData) SetWidths(labelsWidth, logsWidth int) {
-	d.labelsWidth = labelsWidth
-	d.logsWidth = logsWidth
+	d.LabelsWidth = labelsWidth
+	d.LogsWidth = logsWidth
 }
 
 func (d *LogData) Len() int {
 	return d.entries.Len()
 }
 
-func (d *LogData) Drawer() CrossMergable {
-	return &logDataDrawer{LogData: d}
+func (d *LogData) Offset(n int) Drawer {
+	drawer := &logDataDrawer{
+		LogData: *d,
+	}
+	drawer.entries = drawer.entries[n:]
+	return drawer
 }
 
 type logDataDrawer struct {
@@ -121,14 +135,14 @@ type logDataDrawer struct {
 		labels Drawer
 		line   Drawer
 	}
-	*LogData
+	LogData
 }
 
 func (d *logDataDrawer) Done() bool {
 	return d.i >= len(d.entries)
 }
 
-func (d *logDataDrawer) Width() int { return d.labelsWidth + d.logsWidth + d.sep.Width() }
+func (d *logDataDrawer) Width() int { return d.LabelsWidth + d.LogsWidth + d.sep.Width() }
 
 func (d *logDataDrawer) Advance() {
 	if d.cache != nil && (!d.cache.labels.Done() || !d.cache.line.Done()) {
@@ -162,8 +176,8 @@ func (d *logDataDrawer) Draw(n int) (results Renderables) {
 	}
 
 	return CrossMerge{
-		NewWidthDrawer(d.labelsWidth, d.cache.labels),
+		NewWidthDrawer(d.LabelsWidth, d.cache.labels),
 		d.sep,
-		NewWidthDrawer(d.logsWidth, d.cache.line),
+		NewWidthDrawer(d.LogsWidth, d.cache.line),
 	}.Draw(n)
 }

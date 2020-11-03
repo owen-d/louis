@@ -38,3 +38,7 @@ func (NoopDrawer) Done() bool             { return true }
 type DrawableFunc func() Drawer
 
 func (fn DrawableFunc) Drawer() Drawer { return fn() }
+
+func Const(msg tea.Msg) func() tea.Msg {
+	return func() tea.Msg { return msg }
+}
