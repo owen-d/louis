@@ -6,10 +6,22 @@ import (
 	"github.com/muesli/termenv"
 )
 
+type OverflowStrategy int
+
+const (
+	Wrap OverflowStrategy = iota
+	NoWrap
+)
+
 var profile = termenv.ColorProfile() // keep a process wide reference to the color profile.
 
 type Overlay struct {
-	xs []Index
+	xs       []Index
+	strategy OverflowStrategy
+}
+
+func (o *Overlay) Strategy(s OverflowStrategy) {
+	o.strategy = s
 }
 
 func (o Overlay) Drawer() Drawer {
@@ -93,8 +105,19 @@ func (o *overlayDraw) Advance() {
 
 	if o.xs[0].newline {
 		o.xs = o.xs[1:]
+		return
 	}
 
+	var newStart int
+	if o.strategy == NoWrap {
+		for i, x := range o.xs {
+			newStart = i + 1
+			if x.newline {
+				break
+			}
+		}
+	}
+	o.xs = o.xs[newStart:]
 }
 
 type Index struct {
