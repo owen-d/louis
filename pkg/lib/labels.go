@@ -11,13 +11,6 @@ import (
 	"github.com/prometheus/prometheus/pkg/labels"
 )
 
-type LogData struct {
-	coloredLabels          map[uint64]*Overlay
-	entries                streamEntries
-	labelsWidth, logsWidth int
-	sep                    MergableSep
-}
-
 type streamEntry struct {
 	fp uint64
 	loghttp.Entry
@@ -38,6 +31,13 @@ func (xs streamEntries) Less(i, j int) bool {
 
 // Swap swaps the elements with indexes i and j.
 func (xs streamEntries) Swap(i, j int) { xs[i], xs[j] = xs[j], xs[i] }
+
+type LogData struct {
+	coloredLabels          map[uint64]*Overlay
+	entries                streamEntries
+	labelsWidth, logsWidth int
+	sep                    MergableSep
+}
 
 func NewLogData(streams loghttp.Streams, labelsWidth, logsWidth int, sep MergableSep) *LogData {
 	result := LogData{

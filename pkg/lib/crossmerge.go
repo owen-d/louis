@@ -107,3 +107,9 @@ func NewWidthDrawer(n int, d Drawer) CrossMergable {
 }
 
 func (d *widthDrawer) Width() int { return d.width }
+
+func NewWidthDrawable(n int, d Drawable) Drawable {
+	return DrawableFunc(func() Drawer {
+		return NewWidthDrawer(n, d.Drawer())
+	})
+}

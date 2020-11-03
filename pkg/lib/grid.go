@@ -47,12 +47,7 @@ func NewGrid(vSpacing, hSpacing, height, width, minColumnWidth, maxColumns int, 
 
 	for i, v := range views {
 		row := i / cols
-		vp := Viewport{
-			ModelHeight: unitHeight,
-			ModelWidth:  unitWidth,
-			Component:   NoopUpdater{v},
-		}.Drawer()
-		grid.rows[row] = append(grid.rows[row], vp)
+		grid.rows[row] = append(grid.rows[row], NewWidthDrawer(unitWidth, v.Drawer()))
 	}
 
 	for i, x := range grid.rows {

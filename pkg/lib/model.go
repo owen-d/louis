@@ -12,62 +12,22 @@ import (
 	"github.com/prometheus/prometheus/pkg/labels"
 )
 
-type Pane int
-
-const (
-	ParamsPane Pane = iota
-	LabelsPane
-	LogsPane
-
-	MinPane = ParamsPane
-	MaxPane = LogsPane
-
-	GoldenRatio = 1.618
-)
-
-func (p Pane) String() string {
-	switch p {
-	case LabelsPane:
-		return "labels"
-	case LogsPane:
-		return "logs"
-	default:
-		return "params"
-	}
-}
-
-func (p Pane) Next() Pane {
-	n := p + 1
-	if n > MaxPane {
-		n = MinPane
-	}
-	return n
-}
-
-func (p Pane) Prev() Pane {
-	n := p - 1
-	if n < MinPane {
-		n = MaxPane
-	}
-	return n
-}
-
 type Model struct {
 	client client.Client
-	views  viewports
+	panes  panes
 	params Params
 }
 
 func (m *Model) Init() tea.Cmd {
-	m.views.separator = MergableSep{
+	m.panes.separator = MergableSep{
 		Sep: " │ ",
 	}
 
 	m.params = DefaultParams
-	m.views.params.Component = NoopUpdater{Content(m.params.Content())}
-	m.views.labels.Component = NoopUpdater{Content("")}
-	m.views.logs.Component = NoopUpdater{Content("")}
-	m.views.help = DefaultHelp()
+	m.panes.params.Component = NoopUpdater{Content(m.params.Content())}
+	m.panes.labels.Component = NoopUpdater{Content("")}
+	m.panes.logs.Component = NoopUpdater{Content("")}
+	m.panes.help = DefaultHelp()
 
 	m.client = &client.DefaultClient{
 		Address:  os.Getenv("LOKI_ADDR"),
@@ -89,14 +49,25 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	if cmd := m.views.Update(msg); cmd != nil {
+	if cmd := m.panes.Update(msg); cmd != nil {
 		cmds = append(cmds, cmd)
 	}
 
 	return m, tea.Batch(cmds...)
 }
 
-func (m *Model) View() string { return m.views.View() }
+func (m *Model) View() string {
+	var b strings.Builder
+	d := m.panes.Drawer()
+
+	for i := 0; i < m.panes.Height(); i++ {
+		str := quickRender(m.panes.Width(), d)
+		b.WriteString(str)
+		d.Advance()
+	}
+
+	return b.String()
+}
 
 // Hilarious we don't have type for this that's not bound to the ast.
 // Mimic 2/3 of a label matcher :)

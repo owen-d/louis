@@ -8,28 +8,47 @@ import (
 	"github.com/muesli/reflow/ansi"
 )
 
-type Viewport struct {
-	ModelWidth, ModelHeight, YPosition int
-	Component
-}
+type Pane int
 
-func (v *Viewport) Width() int { return v.ModelWidth }
+const (
+	ParamsPane Pane = iota
+	LabelsPane
+	LogsPane
 
-func (v *Viewport) Height() int { return v.ModelHeight }
+	MinPane = ParamsPane
+	MaxPane = LogsPane
 
-func (v Viewport) Drawer() *ViewportDrawer {
-	return &ViewportDrawer{
-		Viewport: v,
-		Drawer:   v.Component.Drawer(),
+	GoldenRatio = 1.618
+)
+
+func (p Pane) String() string {
+	switch p {
+	case LabelsPane:
+		return "labels"
+	case LogsPane:
+		return "logs"
+	default:
+		return "params"
 	}
 }
 
-type ViewportDrawer struct {
-	Viewport // embed for height/width methods
-	Drawer
+func (p Pane) Next() Pane {
+	n := p + 1
+	if n > MaxPane {
+		n = MinPane
+	}
+	return n
 }
 
-type viewports struct {
+func (p Pane) Prev() Pane {
+	n := p - 1
+	if n < MinPane {
+		n = MaxPane
+	}
+	return n
+}
+
+type panes struct {
 	totals               tea.WindowSizeMsg
 	ready                bool
 	focusPane            Pane
@@ -41,7 +60,14 @@ type viewports struct {
 	streams loghttp.Streams
 }
 
-func (v *viewports) focused() *Viewport {
+func (v *panes) Height() int {
+	return v.totals.Height
+}
+func (v *panes) Width() int {
+	return v.totals.Width
+}
+
+func (v *panes) focused() *Viewport {
 	switch v.focusPane {
 	case LabelsPane:
 		return &v.labels
@@ -52,7 +78,7 @@ func (v *viewports) focused() *Viewport {
 	}
 }
 
-func (v *viewports) Update(msg tea.Msg) tea.Cmd {
+func (v *panes) Update(msg tea.Msg) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
@@ -78,7 +104,7 @@ func (v *viewports) Update(msg tea.Msg) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-func (v *viewports) selected() (main *Viewport, secondaries []*Viewport) {
+func (v *panes) selected() (main *Viewport, secondaries []*Viewport) {
 	switch v.focusPane {
 	case LabelsPane:
 		return &v.labels, []*Viewport{&v.params, &v.logs}
@@ -91,7 +117,7 @@ func (v *viewports) selected() (main *Viewport, secondaries []*Viewport) {
 }
 
 // Size sets pane sizes (primary & secondaries) based on the golden ratio.
-func (v *viewports) Size(msg tea.WindowSizeMsg) {
+func (v *panes) Size(msg tea.WindowSizeMsg) {
 	v.totals = msg
 	width := msg.Width - v.separator.Width()*2
 	if !v.ready {
@@ -117,7 +143,7 @@ func (v *viewports) Size(msg tea.WindowSizeMsg) {
 	}
 }
 
-func (v *viewports) header() string {
+func (v *panes) header() string {
 	pane := v.focusPane
 	width := v.totals.Width
 	var start int
@@ -145,7 +171,7 @@ func (v *viewports) header() string {
 	return strings.Join([]string{headerTop, headerMid, headerBot}, "\n")
 }
 
-func (v *viewports) Drawer() Drawer {
+func (v *panes) Drawer() Drawer {
 	return ExactWidthDrawer{
 		NewVMerge(
 			NewHeightDrawer(3, Content(v.header()).Drawer()),
@@ -163,18 +189,4 @@ func (v *viewports) Drawer() Drawer {
 			v.help.Drawer(),
 		),
 	}
-}
-
-func (v *viewports) View() string {
-	var b strings.Builder
-	d := v.Drawer()
-
-	for i := 0; i < v.totals.Height; i++ {
-		str := quickRender(v.totals.Width, d)
-		b.WriteString(str)
-		d.Advance()
-	}
-
-	return b.String()
-
 }

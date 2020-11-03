@@ -34,3 +34,7 @@ type NoopDrawer struct{}
 func (NoopDrawer) Draw(n int) Renderables { return nil }
 func (NoopDrawer) Advance()               {}
 func (NoopDrawer) Done() bool             { return true }
+
+type DrawableFunc func() Drawer
+
+func (fn DrawableFunc) Drawer() Drawer { return fn() }
