@@ -50,7 +50,6 @@ func (p Pane) Prev() Pane {
 
 type panes struct {
 	totals               tea.WindowSizeMsg
-	ready                bool
 	focusPane            Pane
 	separator            MergableSep
 	params, labels, logs Viewport
@@ -120,9 +119,6 @@ func (v *panes) selected() (main *Viewport, secondaries []*Viewport) {
 func (v *panes) Size(msg tea.WindowSizeMsg) {
 	v.totals = msg
 	width := msg.Width - v.separator.Width()*2
-	if !v.ready {
-		v.ready = true
-	}
 
 	v.help.height = 3
 	v.help.width = v.totals.Width
