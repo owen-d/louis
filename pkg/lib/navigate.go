@@ -2,7 +2,6 @@ package lib
 
 import (
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/pkg/errors"
 )
 
 type Direction int
@@ -14,20 +13,19 @@ const (
 	Right
 )
 
-func GetDirection(msg tea.Msg) (Direction, error) {
+func GetDirection(msg tea.Msg) (Direction, bool) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "left", "h":
-			return Left, nil
+			return Left, true
 		case "down", "j":
-			return Down, nil
+			return Down, true
 		case "up", "k":
-			return Up, nil
+			return Up, true
 		case "right", "l":
-			return Right, nil
+			return Right, true
 		}
-		return 0, errors.Errorf("not directional key: %s", msg.String())
 	}
-	return 0, errors.Errorf("not KeyMsg: %T", msg)
+	return 0, false
 }
